@@ -140,5 +140,5 @@ class Programmer:
     send(RESET_LOW)
     delay_ms(100)
 
-def close(self):
-  self.port.close()
+  def close(self):
+    self.port.close()
