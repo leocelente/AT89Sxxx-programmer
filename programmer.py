@@ -6,7 +6,7 @@ from typing import Callable
 from serial import Serial
 from intelhex import IntelHex
 
-DEVICES: dict[str, dict[str, any]] = {
+TARGETS: dict[str, dict[str, any]] = {
     'AT89S52': {'RAM': 2**8, 'ROM': 2**13},
     'AT89S51': {'RAM': 2**7, 'ROM': 2**12},
     'AT89S8253': {'RAM': 2**8, 'ROM': 12288 }
@@ -82,8 +82,8 @@ class Programmer:
     dev_info['baudrate'] = self.port.baudrate
     model = "AT89S8253"
     dev_info['device'] = model
-    dev_info['RAM'] = DEVICES[model]['RAM']
-    dev_info['ROM'] = DEVICES[model]['ROM']
+    dev_info['RAM'] = TARGETS[model]['RAM']
+    dev_info['ROM'] = TARGETS[model]['ROM']
     return dev_info
     
   def sendProgram(self, onUpdate: Callable[[float], None]) -> None:
