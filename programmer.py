@@ -3,24 +3,26 @@ import os
 import pwd
 import time
 from typing import Callable
-from fake_serial import Serial
+from serial import Serial
+from intelhex import IntelHex
 
 DEVICES: dict[str, dict[str, any]] = {
     'AT89S52': {'RAM': 2**8, 'ROM': 2**13},
-    'AT89S51': {'RAM': 2**7, 'ROM': 2**12}
-  } 
+    'AT89S51': {'RAM': 2**7, 'ROM': 2**12},
+    'AT89S8253': {'RAM': 2**8, 'ROM': 12288 }
+  }
 
-PROG_ENABLE = 'p' # returns
-ERASE_CHIP  = 'e' # returns
-ADDR_LSB    = 'a'
-ADDR_MSB    = 'A'
-CONTENT     = 'd'
-RESET_HIGH  = 'o'
-RESET_LOW   = 'c'
-WRITE_PROG  = 'w'
-READ_ID_LSB = 's' # returns 2 (?)
-READ_ID_MSB = 'S' # returns   (?)
-READ_PROG   = 'r' # returns
+PROG_ENABLE = 'p'.encode('utf-8') # returns
+ERASE_CHIP  = 'e'.encode('utf-8') # returns
+ADDR_LSB    = 'a'.encode('utf-8')
+ADDR_MSB    = 'A'.encode('utf-8')
+CONTENT     = 'd'.encode('utf-8')
+RESET_HIGH  = 'o'.encode('utf-8')
+RESET_LOW   = 'c'.encode('utf-8')
+WRITE_PROG  = 'w'.encode('utf-8')
+READ_ID_LSB = 's'.encode('utf-8') # returns 2 (?)
+READ_ID_MSB = 'S'.encode('utf-8') # returns   (?)
+READ_PROG   = 'r'.encode('utf-8') # returns
 
 
 
@@ -31,6 +33,8 @@ class Programmer:
   file: TextIOWrapper = object()
   file_info = dict()
   file_contents: str = ''
+
+  ih = IntelHex()
 
   def setSerialPort(self, portname: str) -> bool:
     ''' Sets and checks destination SerialPort '''
@@ -52,6 +56,7 @@ class Programmer:
     self.file = file
     self.file_info['path'] = os.path.abspath(file.name)
     self.file_contents = "".join(file.readlines()).replace(':', '').replace('\n', '')
+    self.ih.fromfile(file.name, format='hex')
     
 
   def checkConnection(self) -> bool:
@@ -63,7 +68,8 @@ class Programmer:
     ''' Extracts HexFile information '''
     modified = time.ctime(os.path.getmtime(self.file_info['path']))
     # size = os.stat(self.file_info['path']).st_size
-    size = int(len(self.file_contents)/ 2) 
+    # size = int(len(self.file_contents)/ 2) 
+    size = len(self.ih.tobinarray())
     owner = pwd.getpwuid(os.stat(self.file_info['path']).st_uid).pw_name
     self.file_info['name'] = self.file.name
     self.file_info['size'] = size
@@ -76,7 +82,7 @@ class Programmer:
     dev_info = dict()
     dev_info['port'] = self.serial_port
     dev_info['baudrate'] = self.port.baudrate
-    model = "AT89S52"
+    model = "AT89S8253"
     dev_info['device'] = model
     dev_info['RAM'] = DEVICES[model]['RAM']
     dev_info['ROM'] = DEVICES[model]['ROM']
@@ -87,7 +93,9 @@ class Programmer:
     delay_ms = lambda ms: time.sleep(ms/1000)
     size = self.file_info['size']
     
-    send = lambda byte: self.port.write(byte)
+    def send(byte: int):
+       self.port.write(byte)
+       delay_ms(1)
 
     send(RESET_HIGH)
     send(PROG_ENABLE)
@@ -107,28 +115,36 @@ class Programmer:
     send(PROG_ENABLE)
     delay_ms(2)
     
-    addr = 0
-    for i in range(0, int(size*2), 2):
-      data_str = self.file_contents[i:i+2]
-      if data_str == '':
-        continue
-      data = int(data_str, base=16)      
+    # addr = 0
+    # for i in range(0, int(size*2), 2):
+    program = self.ih.todict()
+    for i, (addr, data) in enumerate(program.items()):
+      # data_str = self.file_contents[i:i+2]
+      # if data_str == '':
+      #   continue
+      # data = int(data_str, base=16)
+      
       send(ADDR_LSB)
-      send(addr & 0x00FF)
+      lsb = (addr & 0x00FF) 
+      send(lsb.to_bytes(1, 'little'))
       delay_ms(10)
 
       send(ADDR_MSB)
-      send((addr >> 8) & 0xFF00)
+      hsb = (addr & 0xFF00) >> 8
+      send(hsb.to_bytes(1, 'little'))
       delay_ms(10)
 
       send(CONTENT)
-      send(data)
+      send(data.to_bytes(1, 'little'))
       delay_ms(10)
 
       send(WRITE_PROG)      
-      addr += 1
-      onUpdate(i/size)
+      # addr += 1
+      onUpdate(1/size)
       
     delay_ms(10)
     send(RESET_LOW)
     delay_ms(100)
+
+def close(self):
+  self.port.close()
