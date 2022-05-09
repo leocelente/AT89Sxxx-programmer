@@ -2,3 +2,6 @@
 .vscode/
 __pycache__/
 *.hex
+example/*
+!example/main.c
+!example/Makefile
