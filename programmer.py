@@ -11,7 +11,7 @@ DEVICES: dict[str, dict[str, any]] = {
     'AT89S51': {'RAM': 2**7, 'ROM': 2**12},
     'AT89S8253': {'RAM': 2**8, 'ROM': 12288 }
   }
-
+# Commands to Arduino
 PROG_ENABLE = 'p'.encode('utf-8') # returns
 ERASE_CHIP  = 'e'.encode('utf-8') # returns
 ADDR_LSB    = 'a'.encode('utf-8')
@@ -23,8 +23,6 @@ WRITE_PROG  = 'w'.encode('utf-8')
 READ_ID_LSB = 's'.encode('utf-8') # returns 2 (?)
 READ_ID_MSB = 'S'.encode('utf-8') # returns   (?)
 READ_PROG   = 'r'.encode('utf-8') # returns
-
-
 
 class Programmer:
   serial_port: str = ''
@@ -115,15 +113,8 @@ class Programmer:
     send(PROG_ENABLE)
     delay_ms(2)
     
-    # addr = 0
-    # for i in range(0, int(size*2), 2):
     program = self.ih.todict()
     for i, (addr, data) in enumerate(program.items()):
-      # data_str = self.file_contents[i:i+2]
-      # if data_str == '':
-      #   continue
-      # data = int(data_str, base=16)
-      
       send(ADDR_LSB)
       lsb = (addr & 0x00FF) 
       send(lsb.to_bytes(1, 'little'))
@@ -139,8 +130,7 @@ class Programmer:
       delay_ms(10)
 
       send(WRITE_PROG)      
-      # addr += 1
-      onUpdate(1/size)
+      onUpdate(i/size)
       
     delay_ms(10)
     send(RESET_LOW)
