@@ -62,7 +62,7 @@ class Programmer:
 
   def checkConnection(self) -> bool:
     ''' Checks for compatible firmware on programmer device (Arduino) '''
-    print("Warning: checkConnection() Not Implemented")
+    print("[!] - Warning: checkConnection() Not Implemented")
     return True
 
   def analyzeFile(self) -> dict[str, any]:
@@ -72,7 +72,7 @@ class Programmer:
     # size = int(len(self.file_contents)/ 2) 
     size = len(self.ih.tobinarray())
     owner = pwd.getpwuid(os.stat(self.file_info['path']).st_uid).pw_name
-    self.file_info['name'] = self.file.name
+    self.file_info['name'] = self.file.name.split('/')[-1]
     self.file_info['size'] = size
     self.file_info['modified'] = modified
     self.file_info['owner'] = owner
