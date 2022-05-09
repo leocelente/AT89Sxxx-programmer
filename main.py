@@ -1,12 +1,13 @@
 import argparse
 from rich.progress import Progress
-from programmer import Programmer
+from programmer import Programmer, TARGETS
 
 if   __name__ == '__main__':
   parser = argparse.ArgumentParser(prog="Programmer", description="Serial Programmer for the AT89Sxx series of microcontrollers")
   parser.add_argument('port', metavar='<PORT>', default='/dev/ttyUSB0', type=str, help="Serial Port destination")
   parser.add_argument('file', metavar='<HEXFILE>', type=open, help="Hex File source")
   parser.add_argument('--version', action='version', version='%(prog)s 0.1')
+  parser.add_argument('--target', metavar='<TARGET>', default='AT89S51', type=str, choices=(TARGETS.keys()), help="Target Model from supported list")
   args = parser.parse_args()
   print(f"Programmer")
   print(f"Source Hex File: {args.file.name}")
@@ -21,7 +22,7 @@ if   __name__ == '__main__':
   print(f"File Information:")
   print(filestats)
 
-  devstats = programmer.analyzeDevice()
+  devstats = programmer.analyzeDevice(args.target)
   print("Device Information:")
   print(devstats)
 

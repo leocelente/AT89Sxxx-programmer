@@ -3,7 +3,7 @@ import os
 import pwd
 import time
 from typing import Callable
-from serial import Serial
+from fake_serial import Serial
 from intelhex import IntelHex
 
 TARGETS: dict[str, dict[str, any]] = {
@@ -31,8 +31,11 @@ class Programmer:
   file: TextIOWrapper = object()
   file_info = dict()
   file_contents: str = ''
+  
+  target: str = ''
 
   ih = IntelHex()
+
 
   def setSerialPort(self, portname: str) -> bool:
     ''' Sets and checks destination SerialPort '''
@@ -75,12 +78,13 @@ class Programmer:
     self.file_info['owner'] = owner
     return self.file_info
 
-  def analyzeDevice(self) -> dict[str, any]:
+  def analyzeDevice(self, target: str) -> dict[str, any]:
     ''' Extracts Programmer Device (Arduino) and Target (AT89Sxx) information'''
+    self.target = target
     dev_info = dict()
     dev_info['port'] = self.serial_port
     dev_info['baudrate'] = self.port.baudrate
-    model = "AT89S8253"
+    model = self.target
     dev_info['device'] = model
     dev_info['RAM'] = TARGETS[model]['RAM']
     dev_info['ROM'] = TARGETS[model]['ROM']
