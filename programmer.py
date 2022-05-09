@@ -3,7 +3,7 @@ import os
 import pwd
 import time
 from typing import Callable
-from fake_serial import Serial
+from serial import Serial
 from intelhex import IntelHex
 
 TARGETS: dict[str, dict[str, any]] = {
