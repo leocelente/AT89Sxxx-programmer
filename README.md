@@ -1,5 +1,5 @@
 # AT89Sxxx Programmer
-** Tool to program AT89S family of 8051 microcontrollers using the SPI interface**
+**Tool to program AT89S family of 8051 microcontrollers using the SPI interface**
 
 ![screenshot](screenshot.png)
 
